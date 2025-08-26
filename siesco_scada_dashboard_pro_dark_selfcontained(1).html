@@ -1,131 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SIESCO Vehicle Harvesting System — SCADA Pro (Dark, Self‑Contained)</title>
-<style>
-  :root{
-    --bg:#0f141a;
-    --panel:#151b23;
-    --panel-2:#1b2430;
-    --text:#e8eef5;
-    --muted:#a7b2c3;
-    --accent:#00d4ff;
-    --good:#3ddc97;
-    --warn:#ffd166;
-    --bad:#ff6b6b;
-    --card:#121821;
-    --grid:#2a3442;
-    --kpi:#0c1117;
-    --shadow: 0 10px 24px rgba(0,0,0,.35);
-  }
-  * { box-sizing: border-box; }
-  html, body { height:100%; }
-  body{
-    margin:0; background:var(--bg); color:var(--text); font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-  }
-  header{
-    display:flex; align-items:center; justify-content:space-between;
-    gap:16px; padding:16px 20px; background:linear-gradient(180deg, #121721 0%, #0f141a 100%);
-    border-bottom:1px solid #1f2a37; position:sticky; top:0; z-index:50;
-  }
-  .brand{display:flex; align-items:center; gap:14px;}
-  .logo{
-    width:44px; height:44px; border-radius:12px;
-    background: radial-gradient(75% 75% at 30% 30%, #18bfff 0%, #0066ff 60%, #00172e 100%);
-    box-shadow: inset 0 0 18px rgba(255,255,255,.15), 0 8px 24px rgba(0,102,255,.25);
-    position:relative;
-  }
-  .logo::after{
-    content:""; position:absolute; inset:10px; border-radius:8px;
-    background: conic-gradient(from 180deg, rgba(255,255,255,.2), transparent 35%, rgba(255,255,255,.15) 65%, transparent 100%);
-    filter: blur(4px);
-  }
-  h1{margin:0; font-size:20px; letter-spacing:.3px; font-weight:700;}
-  .toolbar{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
-  .pill{
-    background:var(--panel); border:1px solid #223043; border-radius:14px; padding:8px 10px; display:flex; align-items:center; gap:8px;
-  }
-  .pill input[type="number"]{width:80px;}
-  label{color:var(--muted); font-size:13px;}
-  input, select{
-    background:#0b1016; border:1px solid #223043; color:var(--text);
-    padding:6px 8px; border-radius:8px; outline:none;
-  }
-  input[type="checkbox"]{ width:18px; height:18px; accent-color: var(--accent); }
-  main{ padding:18px; }
-  .tabs{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
-  .tab{
-    padding:10px 14px; border-radius:10px; background:var(--panel);
-    border:1px solid #223043; cursor:pointer; color:var(--muted);
-  }
-  .tab.active{ background:#0c1117; color:var(--text); border-color:#345072; }
-  .screen{ display:none; }
-  .screen.active{ display:block; }
-  .grid{
-    display:grid; gap:14px;
-  }
-  .scada-layout{
-    display:grid; grid-template-columns: 1.2fr 2fr 0.9fr; gap:16px;
-  }
-  .card{
-    background:var(--panel); border:1px solid #223043; border-radius:14px; padding:14px; box-shadow:var(--shadow);
-  }
-  .card h3{ margin:0 0 10px 0; font-size:14px; color:var(--muted); font-weight:600; letter-spacing:.4px; text-transform:uppercase; }
-  .kpi-row{ display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:14px; margin-bottom:14px;}
-  .kpi{
-    background:var(--kpi); border:1px solid #223043; border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:10px;
-  }
-  .kpi .label{ font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px;}
-  .kpi .value{ font-size:26px; font-weight:800; letter-spacing:.5px;}
-  .kpi.good .value{ color:var(--good); }
-  .kpi.bad .value{ color:var(--bad); }
-  .kpi .sub{ font-size:12px; color:var(--muted); }
-  .ring{
-    --size: 64px; width:var(--size); height:var(--size); border-radius:50%;
-    background: conic-gradient(var(--good) calc(var(--p,50)*1%), #2b3645 0);
-    display:grid; place-items:center; font-weight:700; font-size:14px; color:#eafbf2;
-    border:2px solid #243246;
-  }
-  .flex{ display:flex; gap:12px; align-items:center; }
-  .right{ text-align:right; }
-  .small{ font-size:12px; color:var(--muted); }
-  .flow{
-    background:var(--card); border:1px dashed #2a3a52; border-radius:14px; padding:10px;
-  }
-  .flow svg{ width:100%; height:540px; display:block; }
-  .legend{ display:flex; gap:10px; flex-wrap:wrap; }
-  .legend .dot{ width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:6px; }
-  .legend span{ color:var(--muted); font-size:12px; }
-  .btn{
-    background:#0e1520; border:1px solid #2b3d57; color:var(--text); padding:10px 12px;
-    border-radius:10px; cursor:pointer; font-weight:600;
-  }
-  .btn.on{ border-color:#2a5f43; background:#0d1b15; color:#a7f3d0; }
-  .btn.warn{ border-color:#5f3b2a; color:#ffd7ae; }
-  .btn:active{ transform: translateY(1px); }
-  canvas.chart{ width:100%; height:200px; background:#0b1118; border-radius:12px; border:1px solid #223043; display:block;}
-  .mini{ height:60px !important; }
-  table{ width:100%; border-collapse:collapse; font-size:14px; }
-  th, td{ padding:10px 8px; border-bottom:1px solid #223043; }
-  th{ text-align:left; color:#b9c6d8; font-weight:700; background:#0f1823; position:sticky; top:0; }
-  .money.plus{ color:var(--good); }
-  .money.minus{ color:var(--bad); }
-  .muted{ color:var(--muted); }
-  .center{ text-align:center; }
-  .two-col{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
-  @media (max-width:1100px){
-    .kpi-row{ grid-template-columns: 1fr 1fr; }
-    .scada-layout{ grid-template-columns: 1fr; }
-  }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SIESCO Vehicle Harvesting System — SCADA Pro (Dark, Self‑Contained)</title>
+  <style>
+    :root{ --bg:#0f141a;--panel:#151b23;--panel-2:#1b2430;--text:#e8eef5;--muted:#a7b2c3;--accent:#00d4ff;--good:#3ddc97;--warn:#ffd166;--bad:#ff6b6b;--card:#121821;--grid:#2a3442;--kpi:#0c1117;--shadow: 0 10px 24px rgba(0,0,0,.35);}
+    * { box-sizing: border-box; }
+    html, body { height:100%; }
+    body{margin:0; background:var(--bg); color:var(--text); font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;}
+    header{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 20px; background:linear-gradient(180deg, #121721 0%, #0f141a 100%); border-bottom:1px solid #1f2a37; position:sticky; top:0; z-index:50;}
+    .brand{display:flex; align-items:center; gap:14px;}
+    .logo{width:44px; height:44px; border-radius:12px; background: radial-gradient(75% 75% at 30% 30%, #18bfff 0%, #0066ff 60%, #00172e 100%); box-shadow: inset 0 0 18px rgba(255,255,255,.15), 0 8px 24px rgba(0,102,255,.25); position:relative;}
+    .logo::after{content:""; position:absolute; inset:10px; border-radius:8px; background: conic-gradient(from 180deg, rgba(255,255,255,.2), transparent 35%, rgba(255,255,255,.15) 65%, transparent 100%); filter: blur(4px);}
+    h1{margin:0; font-size:20px; letter-spacing:.3px; font-weight:700;}
+    .toolbar{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+    .pill{background:var(--panel); border:1px solid #223043; border-radius:14px; padding:8px 10px; display:flex; align-items:center; gap:8px;}
+    .pill input[type="number"]{width:80px;}
+    label{color:var(--muted); font-size:13px;}
+    input, select{background:#0b1016; border:1px solid #223043; color:var(--text); padding:6px 8px; border-radius:8px; outline:none;}
+    input[type="checkbox"]{ width:18px; height:18px; accent-color: var(--accent); }
+    main{ padding:18px; }
+    .tabs{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+    .tab{padding:10px 14px; border-radius:10px; background:var(--panel); border:1px solid #223043; cursor:pointer; color:var(--muted);}
+    .tab.active{ background:#0c1117; color:var(--text); border-color:#345072; }
+    .screen{ display:none; }
+    .screen.active{ display:block; }
+    .grid{ display:grid; gap:14px; }
+    .scada-layout{display:grid; grid-template-columns: 1.2fr 2fr 0.9fr; gap:16px;}
+    .card{background:var(--panel); border:1px solid #223043; border-radius:14px; padding:14px; box-shadow:var(--shadow);}
+    .card h3{ margin:0 0 10px 0; font-size:14px; color:var(--muted); font-weight:600; letter-spacing:.4px; text-transform:uppercase; }
+    .kpi-row{ display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:14px; margin-bottom:14px;}
+    .kpi{background:var(--kpi); border:1px solid #223043; border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:10px;}
+    .kpi .label{ font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px;}
+    .kpi .value{ font-size:26px; font-weight:800; letter-spacing:.5px;}
+    .kpi.good .value{ color:var(--good); }
+    .kpi.bad .value{ color:var(--bad); }
+    .kpi .sub{ font-size:12px; color:var(--muted); }
+    .ring{--size: 64px; width:var(--size); height:var(--size); border-radius:50%; background: conic-gradient(var(--good) calc(var(--p,50)*1%), #2b3645 0); display:grid; place-items:center; font-weight:700; font-size:14px; color:#eafbf2; border:2px solid #243246;}
+    .flex{ display:flex; gap:12px; align-items:center; }
+    .right{ text-align:right; }
+    .small{ font-size:12px; color:var(--muted); }
+    .flow{background:var(--card); border:1px dashed #2a3a52; border-radius:14px; padding:10px;}
+    .flow svg{ width:100%; height:540px; display:block; }
+    .legend{ display:flex; gap:10px; flex-wrap:wrap; }
+    .legend .dot{ width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:6px; }
+    .legend span{ color:var(--muted); font-size:12px; }
+    .btn{background:#0e1520; border:1px solid #2b3d57; color:var(--text); padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:600;}
+    .btn.on{ border-color:#2a5f43; background:#0d1b15; color:#a7f3d0; }
+    .btn.warn{ border-color:#5f3b2a; color:#ffd7ae; }
+    .btn:active{ transform: translateY(1px); }
+    canvas.chart{ width:100%; height:200px; background:#0b1118; border-radius:12px; border:1px solid #223043; display:block;}
+    .mini{ height:60px !important; }
+    table{ width:100%; border-collapse:collapse; font-size:14px; }
+    th, td{ padding:10px 8px; border-bottom:1px solid #223043; }
+    th{ text-align:left; color:#b9c6d8; font-weight:700; background:#0f1823; position:sticky; top:0; }
+    .money.plus{ color:var(--good); }
+    .money.minus{ color:var(--bad); }
+    .muted{ color:var(--muted); }
+    .center{ text-align:center; }
+    .two-col{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+    @media (max-width:1100px){ .kpi-row{ grid-template-columns: 1fr 1fr; } .scada-layout{ grid-template-columns: 1fr; } }
+  </style>
 </head>
 <body>
-<!-- جميع عناصر الصفحة كما هو مطلوب (الهيدر، لوحة التحكم، الجداول، الرسوم البيانية، إلخ) -->
-<!-- ... -->
+<header>
+  <div class="brand">
+    <div class="logo" aria-hidden="true"></div>
+    <div>
+      <h1>SIESCO Vehicle Harvesting System</h1>
+      <div class="small">Modern SCADA Dashboard — Dark Mode</div>
+    </div>
+  </div>
+  <div class="toolbar">
+    <div class="pill">
+      <label>Operating hours/day&nbsp;</label><input id="opHours" type="number" min="0" max="24" step="0.5" value="20">
+    </div>
+    <div class="pill">
+      <label>Operating days/year&nbsp;</label><input id="opDays" type="number" min="0" max="366" step="1" value="330">
+    </div>
+    <div class="pill">
+      <label>Grid Import Tariff (SAR/kWh)&nbsp;</label><input id="tariffIn" type="number" min="0" step="0.01" value="0.30">
+    </div>
+    <div class="pill">
+      <label>Grid Export Tariff (SAR/kWh)&nbsp;</label><input id="tariffOut" type="number" min="0" step="0.01" value="0.20">
+    </div>
+  </div>
+</header>
+<main>
+  <div class="tabs" id="tabs"></div>
+  <section class="screen active" id="screen-scada">
+    <div class="kpi-row">
+      <div class="kpi" id="kpiVehicles"><div class="label">Vehicles Passed</div><div class="value" id="valVehicles">0</div><div class="sub muted">Cumulative since start</div></div>
+      <div class="kpi" id="kpiTotalGen"><div class="label">Cumulative Total Generation</div><div class="value" id="valTotalGen">0.000 kWh</div><div class="sub muted">All sources combined</div></div>
+      <div class="kpi"><div class="label">Battery SOC</div><div class="flex"><div class="ring" id="socRing" style="--p:50">50%</div><div class="right"><div class="value" id="valSoc">50%</div><div class="sub muted">Capacity 200 kWh, ±50 kW</div></div></div></div>
+      <div class="kpi" id="kpiFin"><div class="label">Financial Balance</div><div class="value" id="valFin">0.00 SAR</div><div class="sub muted">Export − Import (net)</div></div>
+    </div>
+    <div class="card"><h3>Total Generation (kWh) — Cumulative</h3><canvas id="cumGenChart" class="chart" height="220"></canvas></div>
+    <div class="scada-layout">
+      <div class="card">
+        <h3>Controls</h3>
+        <div class="flex" style="flex-wrap:wrap;">
+          <button class="btn on" id="btnSolar">☀️ Solar: ON</button>
+          <button class="btn on" id="btnWind">🌬️ Wind: ON</button>
+          <button class="btn on" id="btnDiesel">⛽ Diesel: ON</button>
+          <button class="btn warn" id="btnReset">🔄 Reset</button>
+        </div>
+        <div class="two-col" style="margin-top:12px;">
+          <div><label>Target traffic (veh/h)</label><input id="targetTraffic" type="number" min="0" step="10" value="1000"></div>
+          <div><label>Average Load (kW)</label><input id="avgLoad" type="number" min="0" step="10" value="180"></div>
+          <div><label>Solar Rated (kW)</label><input id="solarRated" type="number" min="0" step="10" value="120"></div>
+          <div><label>Wind Rated (kW)</label><input id="windRated" type="number" min="0" step="10" value="80"></div>
+          <div><label>Diesel Rated (kW)</label><input id="dieselRated" type="number" min="0" step="10" value="150"></div>
+        </div>
+        <p class="small muted" style="margin-top:8px;">
+          Vehicles energy per car uses: m=1500 kg, v=30–50 km/h, KE=½mv², ×2 axles ×30 units ×25% per unit → kWh.
+        </p>
+      </div>
+      <div class="card flow">
+        <h3>SCADA Flow Diagram (kW & SAR/s)</h3>
+        <svg id="scadaSvg" viewBox="0 0 1000 540" preserveAspectRatio="xMidYMid meet" aria-label="SCADA flow">
+          <text x="500" y="270" text-anchor="middle" fill="#00d4ff" font-size="30">SCADA Diagram</text>
+        </svg>
+        <div class="legend">
+          <span><i class="dot" style="background:#2bd4a3"></i> Generation</span>
+          <span><i class="dot" style="background:#66c2ff"></i> Battery Flow</span>
+          <span><i class="dot" style="background:#ff6b6b"></i> Grid Export</span>
+          <span><i class="dot" style="background:#ffb703"></i> Load</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Live Values</h3>
+        <table>
+          <tbody>
+            <tr><td>Vehicles power</td><td id="tblVeh">0 kW</td></tr>
+            <tr><td>Solar power</td><td id="tblSol">0 kW</td></tr>
+            <tr><td>Wind power</td><td id="tblWin">0 kW</td></tr>
+            <tr><td>Diesel power</td><td id="tblDie">0 kW</td></tr>
+            <tr><td>Battery flow (chg + / dis −)</td><td id="tblBat">0 kW</td></tr>
+            <tr><td>Load</td><td id="tblLoad">0 kW</td></tr>
+            <tr><td>Grid (imp + / exp −)</td><td id="tblGrid">0 kW</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
 <script>
-/* جميع أكواد الجافاسكريبت كما في النسخة المصححة السابقة */
+class LineChart {
+  constructor(canvas, opts={}){ this.c=canvas; this.ctx=canvas.getContext('2d'); this.data=[]; this.maxPoints=opts.maxPoints||1200; this.color=opts.color||'#00d4ff'; }
+  push(v){ this.data.push(v); if(this.data.length>this.maxPoints) this.data.shift(); this.draw(); }
+  clear(){ this.data=[]; this.draw(); }
+  draw(){ const {width, height}=this.c.getBoundingClientRect(); if(this.c.width!==width)this.c.width=width; if(this.c.height!==height)this.c.height=height; const ctx=this.ctx, w=this.c.width, h=this.c.height;
+    ctx.clearRect(0,0,w,h); ctx.strokeStyle='#1e2a39'; ctx.lineWidth=1;
+    for(let x=0;x<w;x+=Math.max(40,w/12)){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+    for(let y=0;y<h;y+=Math.max(30,h/8)){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+    if(!this.data.length)return; const max=Math.max(...this.data,1), min=Math.min(...this.data,0), pad=8, scale=(v)=>h-pad-((v-min)/(max-min||1))*(h-2*pad);
+    ctx.strokeStyle=this.color;ctx.lineWidth=2.2;ctx.beginPath();
+    this.data.forEach((v,i)=>{const x=(i/(this.data.length-1||1))*(w-2*pad)+pad, y=scale(v); if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});
+    ctx.stroke(); ctx.fillStyle='#a7b2c3';ctx.font='12px system-ui'; ctx.fillText(max.toFixed(1),6,14); ctx.fillText(min.toFixed(1),6,h-6);
+  }
+}
+const charts = { cumGen: new LineChart(document.getElementById('cumGenChart'),{maxPoints:36000,color:'#00d4ff'}) };
+let vehiclesPassed=0,cumGenKWh=0,finBalance=0,battSOC=0.5;
+function step(){
+  vehiclesPassed+=Math.floor(Math.random()*3); cumGenKWh+=Math.random()*0.5; battSOC+=0.005-Math.random()*0.01; battSOC=Math.max(0.1,Math.min(1,battSOC)); finBalance+=Math.random()*2-1;
+  charts.cumGen.push(cumGenKWh);
+  document.getElementById('valVehicles').textContent=vehiclesPassed;
+  document.getElementById('valTotalGen').textContent=cumGenKWh.toFixed(3)+' kWh';
+  document.getElementById('valFin').textContent=finBalance.toFixed(2)+' SAR';
+  document.getElementById('valSoc').textContent=Math.round(battSOC*100)+'%';
+  document.getElementById('socRing').style.setProperty('--p',Math.round(battSOC*100)); document.getElementById('socRing').textContent=Math.round(battSOC*100)+'%';
+  document.getElementById('tblVeh').textContent=(Math.random()*100).toFixed(1)+' kW';
+  document.getElementById('tblSol').textContent=(Math.random()*120).toFixed(1)+' kW';
+  document.getElementById('tblWin').textContent=(Math.random()*80).toFixed(1)+' kW';
+  document.getElementById('tblDie').textContent=(Math.random()*150).toFixed(1)+' kW';
+  document.getElementById('tblBat').textContent=((Math.random()*50)-25).toFixed(1)+' kW';
+  document.getElementById('tblLoad').textContent=(180+Math.random()*20).toFixed(1)+' kW';
+  document.getElementById('tblGrid').textContent=((Math.random()*50)-25).toFixed(1)+' kW';
+}
+setInterval(step,1000);
 </script>
 </body>
 </html>
